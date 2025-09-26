@@ -1,0 +1,245 @@
+package com.liadkoren.nonogram.solver;
+
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
+// Not thread-safe
+// Iterates over all valid placements of blocks in a row of given length
+
+public final class LineFillIterator implements Iterator<int[]> {
+	private final int[][] puzzleGrid;
+
+	private final boolean isRow;
+	private final int lineIndex;
+	private final int lineLength;
+
+	private final int[] blockSizes;
+	private final int[] initialBlockPositions, blockPositions;
+
+	private final int[] spaceTakenByBlocksFromIndex;
+
+	private final int[] intersection, currentLine;
+
+	private boolean hasNextCalculated = false;
+	private boolean hasNextValue = false;
+
+	public LineFillIterator(int[] blockSizes, int[][] puzzleGrid, boolean isRow, int lineIndex) {
+		if (puzzleGrid == null) throw new IllegalArgumentException("Puzzle grid cannot be null");
+		if (blockSizes == null) throw new IllegalArgumentException("Block sizes cannot be null");
+
+		this.lineLength = isRow ? puzzleGrid[0].length : puzzleGrid.length;
+		if (lineLength == 0) throw new IllegalArgumentException("Line length cannot be zero");
+		this.puzzleGrid = puzzleGrid;
+
+		this.isRow = isRow;
+		this.lineIndex = lineIndex;
+
+		this.blockSizes = blockSizes;
+		this.intersection = new int[lineLength];
+		this.currentLine = new int[lineLength];
+
+		this.initialBlockPositions = getInitialBlockPositions(blockSizes, lineLength);
+		this.blockPositions = new int[blockSizes.length];
+
+		this.spaceTakenByBlocksFromIndex = getSpaceTakenByBlocksFromIndex(blockSizes);
+
+		resetBlocks();
+	}
+
+	public boolean hasNext() {
+		if (hasNextCalculated) return hasNextValue;
+		hasNextCalculated = true;
+
+		do {
+			boolean advanced = tryAdvance();
+
+			if (!advanced) {
+				hasNextValue = false;
+				return false;
+			}
+		} while (!IsValidState());
+
+		// fill buffer
+		fillCurrentLineBuffer();
+		hasNextValue = true;
+		return true;
+	}
+
+	public int[] next() {
+		if (!hasNext()) {
+			throw new NoSuchElementException("No next element");
+		}
+
+		hasNextCalculated = false;
+		return currentLine;
+	}
+
+
+
+	// Deduces certain cells by intersecting all valid fills
+	// Updates the puzzle grid with certain cells
+	// Returns true if all cells are certain (no zeros in intersection)
+	public boolean deduce() {
+		resetBlocks();
+		boolean certain = intersect();
+		updateGridWithIntersection();
+		return certain;
+	}
+
+
+	public void resetBlocks() {
+		// reset block positions
+		System.arraycopy(initialBlockPositions, 0, blockPositions, 0, blockPositions.length);
+
+		hasNextCalculated = false;
+		if (IsValidState()) {
+			fillCurrentLineBuffer();
+			hasNextCalculated = true;
+			hasNextValue = true;
+		}
+	}
+
+
+	// Intersects all valid fills, storing result in intersection array
+	// Returns true if all cells are certain (no zeros in intersection)
+	public boolean intersect() {
+		if(!hasNext()) {
+			throw new IllegalStateException("No valid fills for this line.");
+		}
+
+		// seed from the first candidate
+		int[] first = next();
+		System.arraycopy(first, 0, intersection, 0, lineLength);
+
+
+		boolean certain = true;
+		// intersect with remaining candidates
+		while(hasNext()) {
+			int[] next = next();
+			for (int i = 0; i < lineLength; i++) {
+				if (intersection[i] == 0) {
+					certain = false;
+					continue;
+				}
+
+				if (intersection[i] != next[i]) {
+					certain = false;
+					intersection[i] = 0;
+				}
+			}
+
+		}
+
+		return certain;
+	}
+
+	public void updateGridWithIntersection() {
+		if(isRow) {
+			System.arraycopy(intersection, 0, puzzleGrid[lineIndex], 0, lineLength);
+		} else {
+			for (int i = 0; i < lineLength; i++) {
+				puzzleGrid[i][lineIndex] = intersection[i];
+			}
+		}
+	}
+
+	private boolean IsValidState() {
+		int blockIndex = 0;
+
+		for (int cell = 0; cell < lineLength; cell++) {
+			final int certainState = getCertainState(cell);
+			if (certainState == 0) continue;
+
+			while (blockIndex < blockPositions.length && cell > blockPositions[blockIndex] + blockSizes[blockIndex] - 1) {
+				blockIndex++;
+			}
+			boolean inBlock = blockIndex < blockPositions.length && cell >= blockPositions[blockIndex] && cell <= blockPositions[blockIndex] + blockSizes[blockIndex] - 1;
+
+			if (certainState == 1 && !inBlock) return false;
+			if (certainState == -1 && inBlock) return false;
+		}
+		return true;
+	}
+
+	private int getCertainState(int cell) {
+		return isRow ? puzzleGrid[lineIndex][cell] : puzzleGrid[cell][lineIndex];
+	}
+
+
+
+	// tries to advance to the next valid state, returns false if no more states
+	private boolean tryAdvance() {
+		// find block to move
+		boolean found = false;
+		int i;
+		for (i = blockPositions.length - 1; i >= 0; i--) {
+			if (blockPositions[i] + spaceTakenByBlocksFromIndex[i] < lineLength) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) return false;
+
+		// move block
+		advanceBlock(i);
+		return true;
+	}
+	// advances the i-th block by one position to the right, and resets all following blocks to their initial positions
+	private void advanceBlock(int i) {
+		blockPositions[i]++;
+		for (int j = i + 1; j < blockPositions.length; j++) {
+			blockPositions[j] = blockPositions[j - 1] + blockSizes[j - 1] + 1;
+		}
+	}
+
+	private int[] getInitialBlockPositions(int[] blockSizes, int length) {
+		var blockPositions = new int[blockSizes.length];
+		if (blockSizes.length == 0) return blockPositions; // no blocks to place
+
+		blockPositions[0] = 0;
+		for (int i = 1; i < blockPositions.length; i++) {
+			blockPositions[i] = blockPositions[i - 1] + blockSizes[i - 1] + 1;
+		}
+
+		if (blockPositions[blockPositions.length - 1] + blockSizes[blockSizes.length - 1] > length) {
+			throw new IllegalStateException("Blocks do not fit in the given length");
+		}
+
+		return blockPositions;
+	}
+	private int[] getSpaceTakenByBlocksFromIndex(int[] blockSizes) {
+		int[] spaceTakenByBlocksStartingWith = new int[blockSizes.length];
+		if (blockSizes.length == 0) return spaceTakenByBlocksStartingWith; // no blocks to place
+
+		int last = blockSizes.length - 1;
+		spaceTakenByBlocksStartingWith[last] = blockSizes[last];
+		// Fill remaining entries from the end
+		for (int i = last - 1; i >= 0; i--) {
+			spaceTakenByBlocksStartingWith[i] = blockSizes[i] + 1 + spaceTakenByBlocksStartingWith[i + 1];
+		}
+		return spaceTakenByBlocksStartingWith;
+	}
+
+	// TODO: optimize by only updating buffer after index i
+	// fills currentLine buffer according to current block positions
+	private void fillCurrentLineBuffer() {
+		for (int i = 0; i < lineLength; i++) {
+			currentLine[i] = -1;
+		}
+		for (int i = 0; i < blockSizes.length; i++) {
+			for (int j = 0; j < blockSizes[i]; j++) {
+				currentLine[blockPositions[i] + j] = 1;
+			}
+		}
+		//printBuffer();
+	}
+	private void printBuffer() {
+		for (int i = 0; i < lineLength; i++) {
+			System.out.print(currentLine[i] == 1 ? '#' : ' ');
+		}
+		System.out.println();
+	}
+
+
+
+}
