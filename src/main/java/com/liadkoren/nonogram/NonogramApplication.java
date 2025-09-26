@@ -38,14 +38,14 @@ public class NonogramApplication {
 		//sum the duration of 10 runs
 		Duration totalDuration = Duration.ZERO;
 		// Run the solver multiple times to get an average time
-		final int RUNS = 10;
+		final int RUNS = 50;
 		for (int run = 0; run < RUNS; run++) {
 			System.out.println("Run #" + (run + 1));
 			Duration d = runSolver(puzzle);
 			totalDuration = totalDuration.plus(d);
 		}
 
-		System.out.println("Average time: " + (totalDuration.toMillis() / (double)RUNS) + " ms");
+		System.out.println("\nAverage time: " + (totalDuration.toMillis() / (double)RUNS) + " ms");
 
 		// Print grid
 		Solver solver = new Solver(puzzle);
