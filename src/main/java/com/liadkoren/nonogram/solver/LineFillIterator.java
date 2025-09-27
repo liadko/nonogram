@@ -18,7 +18,7 @@ public final class LineFillIterator implements Iterator<int[]> {
 
 	private final int[] spaceTakenByBlocksFromIndex;
 
-	private final int[] intersection, currentLine;
+	private final int[] intersection, currentLine, certainStateCache;
 
 	private boolean hasNextCalculated = false;
 	private boolean hasNextValue = false;
@@ -37,6 +37,7 @@ public final class LineFillIterator implements Iterator<int[]> {
 		this.blockSizes = blockSizes;
 		this.intersection = new int[lineLength];
 		this.currentLine = new int[lineLength];
+		this.certainStateCache = new int[lineLength];
 
 		this.initialBlockPositions = getInitialBlockPositions(blockSizes, lineLength);
 		this.blockPositions = new int[blockSizes.length];
@@ -90,6 +91,15 @@ public final class LineFillIterator implements Iterator<int[]> {
 	public void resetBlocks() {
 		// reset block positions
 		System.arraycopy(initialBlockPositions, 0, blockPositions, 0, blockPositions.length);
+
+		// build certain state cache from current puzzle grid
+		if (isRow) {
+			System.arraycopy(puzzleGrid[lineIndex], 0, certainStateCache, 0, lineLength);
+		} else {
+			for (int i = 0; i < lineLength; i++) {
+				certainStateCache[i] = puzzleGrid[i][lineIndex];
+			}
+		}
 
 		hasNextCalculated = false;
 		if (IsValidState()) {
@@ -147,7 +157,7 @@ public final class LineFillIterator implements Iterator<int[]> {
 		int blockIndex = 0;
 
 		for (int cell = 0; cell < lineLength; cell++) {
-			final int certainState = getCertainState(cell);
+			final int certainState = certainStateCache[cell];
 			if (certainState == 0) continue;
 
 			while (blockIndex < blockPositions.length && cell > blockPositions[blockIndex] + blockSizes[blockIndex] - 1) {
@@ -159,10 +169,6 @@ public final class LineFillIterator implements Iterator<int[]> {
 			if (certainState == -1 && inBlock) return false;
 		}
 		return true;
-	}
-
-	private int getCertainState(int cell) {
-		return isRow ? puzzleGrid[lineIndex][cell] : puzzleGrid[cell][lineIndex];
 	}
 
 
