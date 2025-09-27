@@ -1,5 +1,6 @@
 package com.liadkoren.nonogram.solver;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -76,7 +77,6 @@ public final class LineFillIterator implements Iterator<int[]> {
 	}
 
 
-
 	// Deduces certain cells by intersecting all valid fills
 	// Updates the puzzle grid with certain cells
 	// Returns true if all cells are certain (no zeros in intersection)
@@ -113,7 +113,7 @@ public final class LineFillIterator implements Iterator<int[]> {
 	// Intersects all valid fills, storing result in intersection array
 	// Returns true if all cells are certain (no zeros in intersection)
 	public boolean intersect() {
-		if(!hasNext()) {
+		if (!hasNext()) {
 			throw new IllegalStateException("No valid fills for this line.");
 		}
 
@@ -124,7 +124,7 @@ public final class LineFillIterator implements Iterator<int[]> {
 
 		boolean certain = true;
 		// intersect with remaining candidates
-		while(hasNext()) {
+		while (hasNext()) {
 			int[] next = next();
 			for (int i = 0; i < lineLength; i++) {
 				if (intersection[i] == 0) {
@@ -144,7 +144,7 @@ public final class LineFillIterator implements Iterator<int[]> {
 	}
 
 	public void updateGridWithIntersection() {
-		if(isRow) {
+		if (isRow) {
 			System.arraycopy(intersection, 0, puzzleGrid[lineIndex], 0, lineLength);
 		} else {
 			for (int i = 0; i < lineLength; i++) {
@@ -172,7 +172,6 @@ public final class LineFillIterator implements Iterator<int[]> {
 	}
 
 
-
 	// tries to advance to the next valid state, returns false if no more states
 	private boolean tryAdvance() {
 		// find block to move
@@ -190,6 +189,7 @@ public final class LineFillIterator implements Iterator<int[]> {
 		advanceBlock(i);
 		return true;
 	}
+
 	// advances the i-th block by one position to the right, and resets all following blocks to their initial positions
 	private void advanceBlock(int i) {
 		blockPositions[i]++;
@@ -213,6 +213,7 @@ public final class LineFillIterator implements Iterator<int[]> {
 
 		return blockPositions;
 	}
+
 	private int[] getSpaceTakenByBlocksFromIndex(int[] blockSizes) {
 		int[] spaceTakenByBlocksStartingWith = new int[blockSizes.length];
 		if (blockSizes.length == 0) return spaceTakenByBlocksStartingWith; // no blocks to place
@@ -226,26 +227,27 @@ public final class LineFillIterator implements Iterator<int[]> {
 		return spaceTakenByBlocksStartingWith;
 	}
 
-	// TODO: optimize by only updating buffer after index i
+	// maybe optimize by only updating buffer after index i, or after block i? probably not. tried
 	// fills currentLine buffer according to current block positions
 	private void fillCurrentLineBuffer() {
-		for (int i = 0; i < lineLength; i++) {
-			currentLine[i] = -1;
-		}
+		Arrays.fill(currentLine, -1); // start with all empty
+
+		// fill blocks
 		for (int i = 0; i < blockSizes.length; i++) {
-			for (int j = 0; j < blockSizes[i]; j++) {
-				currentLine[blockPositions[i] + j] = 1;
-			}
+			final int blockStart = blockPositions[i];
+			final int blockSize = blockSizes[i];
+			Arrays.fill(currentLine, blockStart, blockStart + blockSize, 1);
 		}
+
 		//printBuffer();
 	}
+
 	private void printBuffer() {
 		for (int i = 0; i < lineLength; i++) {
 			System.out.print(currentLine[i] == 1 ? '#' : ' ');
 		}
 		System.out.println();
 	}
-
 
 
 }
