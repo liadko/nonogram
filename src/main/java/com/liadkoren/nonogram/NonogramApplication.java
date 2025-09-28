@@ -2,12 +2,14 @@ package com.liadkoren.nonogram;
 
 import com.liadkoren.nonogram.core.model.Puzzle;
 import com.liadkoren.nonogram.core.model.Solution;
+import com.liadkoren.nonogram.solver.LineFillIterator;
 import com.liadkoren.nonogram.solver.Solver;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @SpringBootApplication
 public class NonogramApplication {
@@ -45,13 +47,19 @@ public class NonogramApplication {
 			totalDuration = totalDuration.plus(d);
 		}
 
-		System.out.println("\nAverage time: " + (totalDuration.toMillis() / (double)RUNS) + " ms");
+		System.out.println("\nAverage time: " + (totalDuration.toMillis() / (double) RUNS) + " ms");
 
 		// Print grid
 		Solver solver = new Solver(puzzle);
 		solver.solve(Duration.ofSeconds(30));
 		int[][] grid = solver.toSolution().grid();
 
+		printGrid(grid);
+
+
+	}
+
+	private static void printGrid(int[][] grid) {
 		for (int[] row : grid) {
 			for (int cell : row) {
 				if (cell == 1) {
@@ -65,6 +73,7 @@ public class NonogramApplication {
 			System.out.println();
 		}
 	}
+
 
 	private static Duration runSolver(Puzzle puzzle) {
 		Solver solver = new Solver(puzzle);
