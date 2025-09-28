@@ -1,5 +1,6 @@
 package com.liadkoren.nonogram.solver;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -249,5 +250,38 @@ public final class LineFillIterator implements Iterator<int[]> {
 		System.out.println();
 	}
 
+	public static BigInteger countPlacements(int lineLength, int[] blockSizes) {
+		if (lineLength < 0) return BigInteger.ZERO;
+		if (blockSizes == null) throw new IllegalArgumentException("blockSizes cannot be null");
+
+		int k = blockSizes.length;
+		if (k == 0) return BigInteger.ONE; // all empty line
+
+		long sum = 0;
+		for (int b : blockSizes) {
+			if (b <= 0) throw new IllegalArgumentException("block sizes must be positive");
+			sum += b;
+		}
+
+		long mandatory = sum + (k - 1); // blocks + required single gaps between them
+		if (mandatory > lineLength) return BigInteger.ZERO;
+
+		long extra = lineLength - mandatory; // extra empty cells to distribute
+		int gaps = k + 1;                    // leading, (k-1) internal, trailing
+
+		// #ways = C(extra + gaps - 1, gaps - 1)
+		return binomial(extra + gaps - 1, gaps - 1);
+	}
+
+	private static BigInteger binomial(long n, long k) {
+		if (k < 0 || k > n) return BigInteger.ZERO;
+		k = Math.min(k, n - k);
+		BigInteger res = BigInteger.ONE;
+		for (long i = 1; i <= k; i++) {
+			res = res.multiply(BigInteger.valueOf(n - k + i));
+			res = res.divide(BigInteger.valueOf(i)); // exact division
+		}
+		return res;
+	}
 
 }

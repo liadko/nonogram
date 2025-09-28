@@ -96,4 +96,27 @@ class LineFillIteratorTest {
 		assertThrows(IllegalStateException.class, () ->
 				new LineFillIterator(new int[]{3, 3}, grid, true, 0));
 	}
+
+	@Test
+	void countsPermutationsForLongLine() {
+		int[][] grid = new int[1][25]; // all unknown
+		LineFillIterator it = new LineFillIterator(new int[]{1, 5, 5, 2}, grid, true, 0);
+
+		int count = 0;
+		while (it.hasNext()) {
+			int[] state = it.next();
+			// quick sanity checks (optional but nice)
+			// 1) total filled cells == 1+5+5+2 = 13
+			int filled = 0;
+			for (int v : state) filled += (v == 1 ? 1 : 0);
+			assertEquals(13, filled);
+
+			// 2) blocks are separated by at least one -1
+			// (cheap check: no run of 1s longer than 5 except exactly the two 5s,
+			// and there must be at least three -1s between the four runs of 1s)
+			count++;
+		}
+
+		assertEquals(715, count); // C(13,4)
+	}
 }
