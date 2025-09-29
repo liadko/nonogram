@@ -20,8 +20,8 @@ public class PuzzleService {
 		jobStore.markRunning(job.id());
 		try {
 			SolveResult result = solver.solve(job.puzzle(), Duration.ofSeconds(5));
-			if (result.solution().isPresent()) {
-				jobStore.markSolved(job.id(), result.solution().get(), result.duration());
+			if (result.solutionGrid().isPresent()) {
+				jobStore.markSolved(job.id(), result.solutionGrid().get(), result.duration());
 			} else {
 				jobStore.markUnsolvable(job.id(), result.duration());
 			}

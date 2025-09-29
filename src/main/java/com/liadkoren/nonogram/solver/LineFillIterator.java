@@ -80,12 +80,27 @@ public final class LineFillIterator implements Iterator<int[]> {
 
 	// Deduces certain cells by intersecting all valid fills
 	// Updates the puzzle grid with certain cells
-	// Returns true if all cells are certain (no zeros in intersection)
+	// Returns true if all cells are certain (no zeros in intersectionView)
 	public boolean deduce() {
 		resetBlocks();
 		boolean certain = intersect();
 		updateGridWithIntersection();
 		return certain;
+	}
+
+	public record DeductionResult(boolean certain) {}
+
+	/**
+	 * Runs deduction but does not write to the grid.
+	 * Returns a view of the internal intersectionView buffer.
+	 * This array is reused by subsequent calls and is only valid
+	 * until the next call to any deduction method on this iterator.
+	 */
+	public DeductionResult parallelDeduce() {
+		//System.out.println("Parallel deduce called on line " + (isRow ? "row " : "col ") + lineIndex);
+		resetBlocks();
+		boolean certain = intersect();
+		return new DeductionResult(certain);
 	}
 
 
@@ -111,8 +126,8 @@ public final class LineFillIterator implements Iterator<int[]> {
 	}
 
 
-	// Intersects all valid fills, storing result in intersection array
-	// Returns true if all cells are certain (no zeros in intersection)
+	// Intersects all valid fills, storing result in intersectionView array
+	// Returns true if all cells are certain (no zeros in intersectionView)
 	public boolean intersect() {
 		if (!hasNext()) {
 			throw new IllegalStateException("No valid fills for this line.");
@@ -153,6 +168,41 @@ public final class LineFillIterator implements Iterator<int[]> {
 			}
 		}
 	}
+
+	/** Applies the current intersection to grid, writing only new certainties.
+	 *  Returns true if any cell changed; throws if a contradiction is found. */
+	public boolean parallelMergeIntersectionIntoGrid() {
+		boolean changed = false;
+		if (isRow) {
+			int r = lineIndex;
+			for (int c = 0; c < intersection.length; c++) {
+				int v = intersection[c];
+				if (v == 0) continue;                // unknown in this line ⇒ don't touch
+				int prev = puzzleGrid[r][c];
+				if (prev == 0) {                     // new certainty
+					puzzleGrid[r][c] = v;
+					changed = true;
+				} else if (prev != v) {
+					throw new IllegalStateException("Deduction conflict at (" + r + "," + c + "): " + prev + " vs " + v);
+				}
+			}
+		} else {
+			int c = lineIndex;
+			for (int r = 0; r < intersection.length; r++) {
+				int v = intersection[r];
+				if (v == 0) continue;
+				int prev = puzzleGrid[r][c];
+				if (prev == 0) {
+					puzzleGrid[r][c] = v;
+					changed = true;
+				} else if (prev != v) {
+					throw new IllegalStateException("Deduction conflict at (" + r + "," + c + "): " + prev + " vs " + v);
+				}
+			}
+		}
+		return changed;
+	}
+
 
 	private boolean IsValidState() {
 		int blockIndex = 0;

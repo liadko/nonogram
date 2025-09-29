@@ -1,15 +1,14 @@
 package com.liadkoren.nonogram;
 
 import com.liadkoren.nonogram.core.model.Puzzle;
-import com.liadkoren.nonogram.core.model.Solution;
-import com.liadkoren.nonogram.solver.LineFillIterator;
+import com.liadkoren.nonogram.core.model.SolveResult;
+import com.liadkoren.nonogram.solver.SimpleSolver;
 import com.liadkoren.nonogram.solver.Solver;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 @SpringBootApplication
 public class NonogramApplication {
@@ -43,18 +42,24 @@ public class NonogramApplication {
 		final int RUNS = 50;
 		for (int run = 0; run < RUNS; run++) {
 			System.out.println("Run #" + (run + 1));
-			Duration d = runSolver(puzzle);
+			Solver solver = new SimpleSolver();
+			SolveResult result = solver.solve(puzzle, Duration.ofSeconds(5));
+			Duration d = result.duration();
+			System.out.println("Solved? " + result.solutionGrid().isPresent() + " (took: " + d.toMillis() + " ms)");
+
 			totalDuration = totalDuration.plus(d);
 		}
 
 		System.out.println("\nAverage time: " + (totalDuration.toMillis() / (double) RUNS) + " ms");
 
 		// Print grid
-		Solver solver = new Solver(puzzle);
-		solver.solve(Duration.ofSeconds(30));
-		int[][] grid = solver.toSolution().grid();
+		SimpleSolver simpleSolver = new SimpleSolver();
+		SolveResult result = simpleSolver.solve(puzzle, Duration.ofSeconds(30));
 
-		printGrid(grid);
+		if (result.solutionGrid().isPresent())
+			printGrid(result.solutionGrid().get());
+		else
+			System.out.println("No solutionGrid found.");
 
 
 	}
@@ -74,26 +79,6 @@ public class NonogramApplication {
 		}
 	}
 
-
-	private static Duration runSolver(Puzzle puzzle) {
-		Solver solver = new Solver(puzzle);
-
-		// time the solving process
-		Instant start = Instant.now();
-
-
-		System.out.println("Starting");
-		boolean solved = solver.solve(Duration.ofSeconds(30));
-		Instant end = Instant.now();
-		Duration elapsed = Duration.between(start, end);
-		System.out.println("Solved? " + solved + " (took: " + elapsed.toMillis() + " ms)");
-
-
-		return elapsed;
-//		Solution solution = solver.toSolution();
-//		int[][] grid = solution.grid();
-//		return grid;
-	}
 }
 
 
