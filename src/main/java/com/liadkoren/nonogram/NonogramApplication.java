@@ -2,6 +2,7 @@ package com.liadkoren.nonogram;
 
 import com.liadkoren.nonogram.core.model.Puzzle;
 import com.liadkoren.nonogram.core.model.SolveResult;
+import com.liadkoren.nonogram.solver.ParallelSolver;
 import com.liadkoren.nonogram.solver.SimpleSolver;
 import com.liadkoren.nonogram.solver.Solver;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,6 +10,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @SpringBootApplication
 public class NonogramApplication {
@@ -36,13 +39,18 @@ public class NonogramApplication {
 
 		Puzzle puzzle = new Puzzle(rowClues, colClues);
 
+		ExecutorService pool = Executors.newFixedThreadPool(
+				Runtime.getRuntime().availableProcessors()
+		);
+		System.out.println("Using " + Runtime.getRuntime().availableProcessors() + " threads.");
+
 		//sum the duration of 10 runs
 		Duration totalDuration = Duration.ZERO;
 		// Run the solver multiple times to get an average time
-		final int RUNS = 50;
+		final int RUNS = 500;
 		for (int run = 0; run < RUNS; run++) {
 			System.out.println("Run #" + (run + 1));
-			Solver solver = new SimpleSolver();
+			Solver solver = new ParallelSolver(pool);
 			SolveResult result = solver.solve(puzzle, Duration.ofSeconds(5));
 			Duration d = result.duration();
 			System.out.println("Solved? " + result.solutionGrid().isPresent() + " (took: " + d.toMillis() + " ms)");
@@ -53,7 +61,7 @@ public class NonogramApplication {
 		System.out.println("\nAverage time: " + (totalDuration.toMillis() / (double) RUNS) + " ms");
 
 		// Print grid
-		SimpleSolver simpleSolver = new SimpleSolver();
+		Solver simpleSolver = new ParallelSolver(pool);
 		SolveResult result = simpleSolver.solve(puzzle, Duration.ofSeconds(30));
 
 		if (result.solutionGrid().isPresent())
