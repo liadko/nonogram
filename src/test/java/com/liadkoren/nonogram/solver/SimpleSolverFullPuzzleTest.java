@@ -1,7 +1,7 @@
 package com.liadkoren.nonogram.solver;
 
 import com.liadkoren.nonogram.core.model.Puzzle;
-import com.liadkoren.nonogram.core.model.Solution;
+import com.liadkoren.nonogram.core.model.SolveResult;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -10,7 +10,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class SolverFullPuzzleTest {
+class SimpleSolverFullPuzzleTest {
 
 	@Test
 	void solvesGiven5x5Puzzle() {
@@ -31,13 +31,13 @@ class SolverFullPuzzleTest {
 		);
 		Puzzle puzzle = new Puzzle(rows, cols);
 
-		Solver solver = new Solver(puzzle);
-		boolean success = solver.solve(Duration.ofSeconds(2));
+		SimpleSolver simpleSolver = new SimpleSolver();
+		SolveResult result = simpleSolver.solve(puzzle, Duration.ofSeconds(2));
 
-		assertTrue(success, "Solver should succeed on this puzzle");
+		System.out.println(result.duration().toMillis() + " ms");
+		assertTrue(result.solutionGrid().isPresent(), "Solver should succeed on this puzzle");
 
-		Solution sol = solver.toSolution();
-		int[][] grid = sol.grid();
+		int[][] grid = result.solutionGrid().get();
 
 		int[][] expected = {
 				{-1, -1, -1,  1, -1},
