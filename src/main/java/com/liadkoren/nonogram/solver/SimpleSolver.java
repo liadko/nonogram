@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.Optional;
 
+
 /**
  * A stateful solver instance.
  * Not thread-safe: one instance may only be used for a single solve at a time.
@@ -25,27 +26,9 @@ public final class SimpleSolver implements Solver {
 		this.cols = puzzle.cols().size();
 		this.grid = new int[rows][cols];
 
-		lineIterators = getLineIterators();
+		lineIterators = LineFillIterator.getLineIterators(puzzle, grid);
 	}
 
-	private ArrayDeque<LineFillIterator> getLineIterators() {
-		ArrayDeque<LineFillIterator> deque = new ArrayDeque<>(rows + cols);
-		// Add row iterators
-		for (int r = 0; r < rows; r++) {
-			int[] blockSizes = puzzle.rows().get(r);
-			LineFillIterator rowIt = new LineFillIterator(blockSizes, grid, true, r);
-			deque.addLast(rowIt);
-		}
-
-		// Add column iterators
-		for (int c = 0; c < cols; c++) {
-			int[] blockSizes = puzzle.cols().get(c);
-			LineFillIterator colIt = new LineFillIterator(blockSizes, grid, false, c);
-			deque.addLast(colIt);
-		}
-
-		return deque;
-	}
 
 	public SolveResult solve(Puzzle puzzle, Duration budget) {
 		long start = System.nanoTime();

@@ -1,6 +1,9 @@
 package com.liadkoren.nonogram.solver;
 
+import com.liadkoren.nonogram.core.model.Puzzle;
+
 import java.math.BigInteger;
+import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -100,6 +103,8 @@ public final class LineFillIterator implements Iterator<int[]> {
 		//System.out.println("Parallel deduce called on line " + (isRow ? "row " : "col ") + lineIndex);
 		resetBlocks();
 		boolean certain = intersect();
+		updateGridWithIntersection();
+
 		return new DeductionResult(certain);
 	}
 
@@ -168,41 +173,6 @@ public final class LineFillIterator implements Iterator<int[]> {
 			}
 		}
 	}
-
-	/** Applies the current intersection to grid, writing only new certainties.
-	 *  Returns true if any cell changed; throws if a contradiction is found. */
-	public boolean parallelMergeIntersectionIntoGrid() {
-		boolean changed = false;
-		if (isRow) {
-			int r = lineIndex;
-			for (int c = 0; c < intersection.length; c++) {
-				int v = intersection[c];
-				if (v == 0) continue;                // unknown in this line ⇒ don't touch
-				int prev = puzzleGrid[r][c];
-				if (prev == 0) {                     // new certainty
-					puzzleGrid[r][c] = v;
-					changed = true;
-				} else if (prev != v) {
-					throw new IllegalStateException("Deduction conflict at (" + r + "," + c + "): " + prev + " vs " + v);
-				}
-			}
-		} else {
-			int c = lineIndex;
-			for (int r = 0; r < intersection.length; r++) {
-				int v = intersection[r];
-				if (v == 0) continue;
-				int prev = puzzleGrid[r][c];
-				if (prev == 0) {
-					puzzleGrid[r][c] = v;
-					changed = true;
-				} else if (prev != v) {
-					throw new IllegalStateException("Deduction conflict at (" + r + "," + c + "): " + prev + " vs " + v);
-				}
-			}
-		}
-		return changed;
-	}
-
 
 	private boolean IsValidState() {
 		int blockIndex = 0;
@@ -293,6 +263,10 @@ public final class LineFillIterator implements Iterator<int[]> {
 		//printBuffer();
 	}
 
+	public boolean getIsRow() {
+		return isRow;
+	}
+
 	private void printBuffer() {
 		for (int i = 0; i < lineLength; i++) {
 			System.out.print(currentLine[i] == 1 ? '#' : ' ');
@@ -333,5 +307,27 @@ public final class LineFillIterator implements Iterator<int[]> {
 		}
 		return res;
 	}
+
+	public static ArrayDeque<LineFillIterator> getLineIterators(Puzzle puzzle, int[][] grid) {
+		int rows = puzzle.rows().size(), cols = puzzle.cols().size();
+
+		ArrayDeque<LineFillIterator> deque = new ArrayDeque<>(rows + cols);
+		// Add row iterators
+		for (int r = 0; r < rows; r++) {
+			int[] blockSizes = puzzle.rows().get(r);
+			LineFillIterator rowIt = new LineFillIterator(blockSizes, grid, true, r);
+			deque.addLast(rowIt);
+		}
+
+		// Add column iterators
+		for (int c = 0; c < cols; c++) {
+			int[] blockSizes = puzzle.cols().get(c);
+			LineFillIterator colIt = new LineFillIterator(blockSizes, grid, false, c);
+			deque.addLast(colIt);
+		}
+
+		return deque;
+	}
+
 
 }
