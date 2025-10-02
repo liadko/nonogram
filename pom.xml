@@ -4,32 +4,25 @@
                              https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.4</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
     <groupId>com.liadkoren.nonogram</groupId>
     <artifactId>nonogram-parent</artifactId>
     <version>0.1.0</version>
     <packaging>pom</packaging>
 
     <modules>
-        <module>nonogram-core</module>
-        <module>nonogram-solver</module>
-        <module>nonogram-scraper</module>
+        <module>nonogram-lib</module>
         <module>nonogram-service</module>
     </modules>
 
     <properties>
         <java.version>17</java.version>
-        <spring.boot.version>3.3.4</spring.boot.version>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring.boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 </project>
