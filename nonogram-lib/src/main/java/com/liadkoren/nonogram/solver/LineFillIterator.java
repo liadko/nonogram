@@ -94,10 +94,7 @@ public final class LineFillIterator implements Iterator<int[]> {
 	public record DeductionResult(boolean certain) {}
 
 	/**
-	 * Runs deduction but does not write to the grid.
-	 * Returns a view of the internal intersectionView buffer.
-	 * This array is reused by subsequent calls and is only valid
-	 * until the next call to any deduction method on this iterator.
+	 * Runs deduction and writes to grid.
 	 */
 	public DeductionResult parallelDeduce() {
 		//System.out.println("Parallel deduce called on line " + (isRow ? "row " : "col ") + lineIndex);
