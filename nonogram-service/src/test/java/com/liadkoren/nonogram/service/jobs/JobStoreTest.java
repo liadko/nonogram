@@ -1,44 +1,57 @@
 package com.liadkoren.nonogram.service.jobs;
 
-import com.liadkoren.nonogram.service.jobs.model.Job;
-import com.liadkoren.nonogram.service.jobs.model.JobStatus;
+import com.liadkoren.nonogram.service.jobs.model.JobEntity;
+import com.liadkoren.nonogram.service.jobs.model.JobEntity.JobSourceType;
+import com.liadkoren.nonogram.service.jobs.model.JobEntity.JobStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.UUID;
 
-import static java.util.UUID.randomUUID;
+import static java.util.Arrays.deepEquals;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
-@Import(JobStore.class) // bring the service into the JPA slice
+@Import(JobStore.class) // JPA slice + your service
 class JobStoreTest {
 
-	@Autowired JobStore store;
+	@Autowired
+	JobStore store;
+	@Autowired
+	jakarta.persistence.EntityManager em;
 
 	@Test
-	void save_and_find_roundtrip() {
-		UUID id = randomUUID();
-		Job j = new Job(id, JobStatus.PENDING, "{\"url\":\"http://x\"}", 5000);
-		store.save(j);
+	void save_and_find_roundtrip_url_job() {
+		// assumes puzzle column is nullable=true
+		JobEntity j = JobEntity.forUrl(URI.create("http://x"), 5_000);
 
-		Job loaded = store.find(id).orElseThrow();
-		assertEquals(JobStatus.PENDING, loaded.getStatus());
-		assertEquals("{\"url\":\"http://x\"}", loaded.getPayloadJson());
+		JobEntity saved = store.save(j);
+		em.flush();
+
+		UUID id = saved.getId();
+		assertNotNull(id);
+
+		JobEntity loaded = store.find(id).orElseThrow();
+		assertEquals(JobStatus.QUEUED, loaded.getStatus());
+		assertEquals(JobSourceType.URL, loaded.getSourceType());
+		assertEquals("http://x", loaded.getSourceUrl());
+		assertNull(loaded.getPuzzle());
 		assertNotNull(loaded.getCreatedAt());
 		assertNull(loaded.getStartedAt());
 		assertNull(loaded.getCompletedAt());
+		assertEquals(5_000, loaded.getBudgetMs());
 	}
 
 	@Test
 	void markRunning_sets_status_and_startedAt() {
-		UUID id = randomUUID();
-		store.save(new Job(id, JobStatus.PENDING, "{}", 5000));
+		var j = JobEntity.forUrl(URI.create("http://x"), 5_000);
+		store.save(j);
 
-		Job running = store.markRunning(id);
+		JobEntity running = store.markRunning(j.getId());
 
 		assertEquals(JobStatus.RUNNING, running.getStatus());
 		assertNotNull(running.getStartedAt());
@@ -46,19 +59,72 @@ class JobStoreTest {
 	}
 
 	@Test
-	void markCompleted_and_markFailed_set_expected_fields() {
-		UUID cId = randomUUID();
-		store.save(new Job(cId, JobStatus.RUNNING, "{}", 5000));
-		Job done = store.markCompleted(cId, "{\"grid\":[]}");
-		assertEquals(JobStatus.SUCCESS, done.getStatus());
-		assertEquals("{\"grid\":[]}", done.getResultJson());
-		assertNotNull(done.getCompletedAt());
+	void markCompleted_sets_status_result_and_completedAt() {
+		var j = JobEntity.forUrl(URI.create("http://x"), 5_000);
+		store.save(j);
+		store.markRunning(j.getId()); // typical flow
 
-		UUID fId = randomUUID();
-		store.save(new Job(fId, JobStatus.RUNNING, "{}", 5000));
-		Job failed = store.markFailed(fId, "timeout");
+		JobEntity done = store.markCompleted(j.getId(), new boolean[10][10]);
+
+		assertEquals(JobStatus.SUCCESS, done.getStatus());
+		assertNotNull(done.getCompletedAt());
+		assertNull(done.getErrorMessage());
+		assertNull(done.getErrorType());
+	}
+
+	@Test
+	void markFailed_sets_status_error_fields_and_completedAt() {
+		var j = JobEntity.forUrl(URI.create("http://x"), 5_000);
+		store.save(j);
+		store.markRunning(j.getId());
+
+		JobEntity failed = store.markFailed(j.getId(), /*errorMessage*/ "timeout");
 		assertEquals(JobStatus.FAIL, failed.getStatus());
 		assertEquals("timeout", failed.getErrorMessage());
 		assertNotNull(failed.getCompletedAt());
 	}
+
+	@Test
+	void forUrl_requires_nonNull_url_and_nonNegative_budget() {
+		assertThrows(IllegalArgumentException.class, () -> JobEntity.forUrl(null, 100));
+		assertThrows(IllegalArgumentException.class, () -> JobEntity.forUrl(URI.create("http://x"), -1));
+		// zero budget is allowed by your invariant
+		var ok = JobEntity.forUrl(URI.create("http://x"), 0);
+		assertNotNull(ok);
+	}
+
+	@Test
+	void markCompleted_sets_result_grid_and_persists() {
+		var j = JobEntity.forUrl(URI.create("http://x"), 5_000);
+		store.save(j);
+		em.flush(); // ensure INSERT
+
+		boolean[][] grid = {
+				{true, false, true},
+				{false, false, true}
+		};
+
+		// your JobStore should set both summary and grid; if you split APIs, adjust call
+		JobEntity done = store.markCompleted(j.getId(), grid);
+		em.flush(); // force UPDATE
+
+		assertEquals(JobStatus.SUCCESS, done.getStatus());
+		assertNotNull(done.getCompletedAt());
+
+		// reload to ensure JSON roundtrip works
+		var reloaded = store.find(j.getId()).orElseThrow();
+		assertTrue(deepEquals(grid, reloaded.getResultGrid()), "result grid must persist identically");
+	}
+
+	@Test
+	void result_grid_defaults_to_null_until_completion() {
+		var j = JobEntity.forUrl(URI.create("http://x"), 5_000);
+		store.save(j);
+		em.flush();
+
+		var loaded = store.find(j.getId()).orElseThrow();
+		assertNull(loaded.getResultGrid());
+	}
+
+
 }
