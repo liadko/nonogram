@@ -53,7 +53,7 @@ public final class SimpleSolver implements Solver {
 
 		if (lineIterators.isEmpty()) {
 			// solved
-			return new SolveResult(Optional.of(grid), timeSpent);
+			return SolveResult.success(grid, timeSpent);
 		}
 		// budget exceeded
 		return new SolveResult(Optional.empty(), timeSpent);

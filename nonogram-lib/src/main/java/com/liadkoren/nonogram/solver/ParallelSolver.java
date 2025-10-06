@@ -54,18 +54,20 @@ public final class ParallelSolver implements Solver {
 		initializeSolver(puzzle, budget);
 
 		try {
-			return trySolve(puzzle, budget);
-		} catch (InterruptedException e) {
+			return trySolve();
+		}catch (IllegalStateException e) {
+			return SolveResult.unsolvable("Puzzle is unsolvable: " + e.getMessage(), elapsedSinceStart());
+		}
+		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			return new SolveResult(Optional.empty(), Duration.ofNanos(System.nanoTime() - solveStartTime));
+			return SolveResult.error("Some Thread Interrupted", elapsedSinceStart());
 		} catch (ExecutionException e) {
-			e.printStackTrace();
-			return new SolveResult(Optional.empty(), Duration.ofNanos(System.nanoTime() - solveStartTime));
+			return SolveResult.error("Execution error: " + e.getCause(), elapsedSinceStart());
 		}
 
 	}
 
-	private SolveResult trySolve(Puzzle puzzle, Duration budget) throws InterruptedException, ExecutionException {
+	private SolveResult trySolve() throws InterruptedException, ExecutionException {
 
 		boolean deducingRows = true;
 
@@ -75,18 +77,13 @@ public final class ParallelSolver implements Solver {
 			List<Future<DeductionResult>> futures = pool.invokeAll(deductionTasks); //  wait for all to finish
 			processAllTaskResults(futures);
 
-			// switch rows/cols for next iteration
-			deducingRows = !deducingRows;
-
+			deducingRows = !deducingRows; // switch rows/cols for next iteration
 		}
 
-		Duration timeSpent = Duration.ofNanos(System.nanoTime() - solveStartTime);
 		if (lineIterators.isEmpty()) {
-			// solved
-			return new SolveResult(Optional.of(grid), timeSpent);
+			return SolveResult.success(grid, elapsedSinceStart()); // solved
 		}
-		// budget exceeded
-		return new SolveResult(Optional.empty(), timeSpent);
+		return SolveResult.timeout(elapsedSinceStart());        // budget exceeded
 
 	}
 
@@ -129,7 +126,8 @@ public final class ParallelSolver implements Solver {
 	}
 
 
-	int[][] getGrid() {
-		return grid;
+
+	private Duration elapsedSinceStart() {
+		return Duration.ofNanos(System.nanoTime() - solveStartTime);
 	}
 }
