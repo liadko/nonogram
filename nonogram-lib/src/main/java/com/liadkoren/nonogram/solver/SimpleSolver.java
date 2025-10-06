@@ -6,7 +6,6 @@ import com.liadkoren.nonogram.core.ports.Solver;
 
 import java.time.Duration;
 import java.util.ArrayDeque;
-import java.util.Optional;
 
 
 /**
@@ -15,19 +14,18 @@ import java.util.Optional;
  * For multiple concurrent solves, create separate instances.
  */
 public final class SimpleSolver implements Solver {
-	private Puzzle puzzle;
 	private int[][] grid;
 	int rows, cols;
 
 	private ArrayDeque<LineFillIterator> lineIterators;
 
 	private void initializeSolver(Puzzle puzzle) {
-		this.puzzle = puzzle;
 		this.rows = puzzle.rows().size();
 		this.cols = puzzle.cols().size();
 		this.grid = new int[rows][cols];
 
-		lineIterators = LineFillIterator.getLineIterators(puzzle, grid);
+		lineIterators = new ArrayDeque<>(rows + cols);
+		LineFillIterator.populateWithLineIterators(puzzle, grid, lineIterators);
 	}
 
 
@@ -56,7 +54,7 @@ public final class SimpleSolver implements Solver {
 			return SolveResult.success(grid, timeSpent);
 		}
 		// budget exceeded
-		return new SolveResult(Optional.empty(), timeSpent);
+		return SolveResult.timeout(timeSpent);
 	}
 
 

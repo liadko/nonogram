@@ -9,8 +9,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ParallelSolverFullPuzzleTest {
 
@@ -40,16 +39,16 @@ class ParallelSolverFullPuzzleTest {
 
 		System.out.println(result.duration().toMillis() + " ms");
 
-		assertTrue(result.solutionGrid().isPresent(), "Parallel solver should succeed on this puzzle");
+		assertEquals(SolveResult.SolveStatus.SUCCESS, result.status(), "Parallel solver should succeed on this puzzle");
 
-		int[][] grid = result.solutionGrid().get();
+		boolean[][] grid = result.grid();
 
-		int[][] expected = {
-				{-1, -1, -1,  1, -1},
-				{-1, -1,  1,  1, -1},
-				{ 1,  1,  1, -1,  1},
-				{ 1,  1,  1, -1, -1},
-				{ 1,  1,  1, -1, -1}
+		boolean[][] expected = {
+				{false, false, false, true,  false},
+				{false, false, true,  true,  false},
+				{true,  true,  true,  false, true},
+				{true,  true,  true,  false, false},
+				{true,  true,  true,  false, false}
 		};
 
 		assertArrayEquals(expected[0], grid[0]);
@@ -58,4 +57,5 @@ class ParallelSolverFullPuzzleTest {
 		assertArrayEquals(expected[3], grid[3]);
 		assertArrayEquals(expected[4], grid[4]);
 	}
+
 }

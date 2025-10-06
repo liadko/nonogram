@@ -7,10 +7,7 @@ import com.liadkoren.nonogram.solver.LineFillIterator.DeductionResult;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * A stateful solver instance that uses multiple threads to deduce lines in parallel.
@@ -24,9 +21,7 @@ public final class ParallelSolver implements Solver {
 	private int[][] grid;
 	int rows, cols;
 
-	private Deque<LineFillIterator> lineIterators;
-	private ArrayList<LineFillIterator> activeLines;
-	private List<Callable<DeductionResult>> deductionTasks;
+	private ConcurrentLinkedDeque<LineFillIterator> lineIterators;
 
 	private long solveStartTime, solveDeadline;
 
@@ -42,10 +37,8 @@ public final class ParallelSolver implements Solver {
 		this.cols = puzzle.cols().size();
 		this.grid = new int[rows][cols];
 
-		this.lineIterators = LineFillIterator.getLineIterators(puzzle, grid);
-		this.activeLines = new ArrayList<>(lineIterators.size());
-		this.deductionTasks = new ArrayList<>(lineIterators.size());
-
+		this.lineIterators = new ConcurrentLinkedDeque<>();
+		LineFillIterator.populateWithLineIterators(puzzle, grid, lineIterators);
 
 	}
 
@@ -53,29 +46,20 @@ public final class ParallelSolver implements Solver {
 	public SolveResult solve(Puzzle puzzle, Duration budget) {
 		initializeSolver(puzzle, budget);
 
-		try {
-			return trySolve();
-		}catch (IllegalStateException e) {
-			return SolveResult.unsolvable("Puzzle is unsolvable: " + e.getMessage(), elapsedSinceStart());
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return SolveResult.error("Some Thread Interrupted", elapsedSinceStart());
-		} catch (ExecutionException e) {
-			return SolveResult.error("Execution error: " + e.getCause(), elapsedSinceStart());
-		}
-
-	}
-
-	private SolveResult trySolve() throws InterruptedException, ExecutionException {
-
 		boolean deducingRows = true;
 
-		while (System.nanoTime() < solveDeadline && !lineIterators.isEmpty()) {
+		while (withinTimeBudget() && !lineIterators.isEmpty()) {
 
-			submitAllTasks(deducingRows);
-			List<Future<DeductionResult>> futures = pool.invokeAll(deductionTasks); //  wait for all to finish
-			processAllTaskResults(futures);
+			List<CompletableFuture<Void>> futures = deduceAllLines(deducingRows);
+
+			try {
+				CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+			} catch (CompletionException e) {
+				if(e.getCause() instanceof IllegalStateException ise) {
+					return SolveResult.unsolvable("Puzzle is unsolvable: " + ise.getMessage(), elapsedSinceStart());
+				}
+				return SolveResult.error("Execution error: " + e.getCause(), elapsedSinceStart());
+			}
 
 			deducingRows = !deducingRows; // switch rows/cols for next iteration
 		}
@@ -83,50 +67,36 @@ public final class ParallelSolver implements Solver {
 		if (lineIterators.isEmpty()) {
 			return SolveResult.success(grid, elapsedSinceStart()); // solved
 		}
-		return SolveResult.timeout(elapsedSinceStart());        // budget exceeded
+		return SolveResult.timeout(elapsedSinceStart()); // budget exceeded
 
 	}
 
-	private void submitAllTasks(boolean deducingRows) {
-		activeLines.clear();
-		deductionTasks.clear();
-		int lineIteratorsCount = lineIterators.size();
-		for (int i = 0; i < lineIteratorsCount; i++) {
+	private List<CompletableFuture<Void>> deduceAllLines(boolean deducingRows) {
+		List<CompletableFuture<Void>> futures = new ArrayList<>(lineIterators.size());
+
+		int n = lineIterators.size();
+		for (int i = 0; i < n; i++) {
 			var lineIt = lineIterators.removeFirst();
 
 			if (deducingRows == lineIt.getIsRow()) {
-				// submit for parallel deduction
-				activeLines.add(lineIt);
-				deductionTasks.add(lineIt::parallelDeduce);
+				var future = CompletableFuture.supplyAsync(lineIt::parallelDeduce, pool).thenAccept(result -> {
+					if (!result.certain()) {
+						lineIterators.addLast(lineIt); // re-add
+					}
+				});
+				futures.add(future);
 			} else {
-				// re-add to the end of the queue
-				lineIterators.addLast(lineIt);
+				lineIterators.addLast(lineIt); // re-add
 			}
 
 		}
+
+		return futures;
 	}
 
-	/**
-	 * Process results of all deduction tasks.
-	 * For each line that was not fully deduced, re-add its iterator to the end of the queue.
-	 */
-	private void processAllTaskResults(List<Future<DeductionResult>> futures) throws InterruptedException, ExecutionException {
-		int activeIndex = 0;
-		for (Future<DeductionResult> f : futures) {
-			boolean certain = f.get().certain(); // blocking get
-
-			LineFillIterator r = activeLines.get(activeIndex++);
-
-			if (!certain) {
-				// re-add to the end of the queue
-				lineIterators.addLast(r);
-			}
-
-		}
+	private boolean withinTimeBudget() {
+		return System.nanoTime() < solveDeadline;
 	}
-
-
-
 	private Duration elapsedSinceStart() {
 		return Duration.ofNanos(System.nanoTime() - solveStartTime);
 	}

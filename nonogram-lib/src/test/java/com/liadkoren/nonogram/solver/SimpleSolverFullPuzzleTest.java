@@ -7,8 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class SimpleSolverFullPuzzleTest {
 
@@ -35,16 +34,16 @@ class SimpleSolverFullPuzzleTest {
 		SolveResult result = simpleSolver.solve(puzzle, Duration.ofSeconds(2));
 
 		System.out.println(result.duration().toMillis() + " ms");
-		assertTrue(result.solutionGrid().isPresent(), "Solver should succeed on this puzzle");
+		assertEquals(SolveResult.SolveStatus.SUCCESS, result.status(), "Solver should succeed on this puzzle");
 
-		int[][] grid = result.solutionGrid().get();
+		boolean[][] grid = result.grid();
 
-		int[][] expected = {
-				{-1, -1, -1,  1, -1},
-				{-1, -1,  1,  1, -1},
-				{ 1,  1,  1, -1,  1},
-				{ 1,  1,  1, -1, -1},
-				{ 1,  1,  1, -1, -1}
+		boolean[][] expected = {
+				{false, false, false, true,  false},
+				{false, false, true,  true,  false},
+				{true,  true,  true,  false, true},
+				{true,  true,  true,  false, false},
+				{true,  true,  true,  false, false}
 		};
 
 		assertArrayEquals(expected[0], grid[0]);
