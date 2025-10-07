@@ -24,9 +24,5 @@ public class ExecutorConfig {
 		return ex;
 	}
 
-	// Shared pool used INSIDE ParallelSolver
-	@Bean(destroyMethod = "shutdown")
-	public ExecutorService solverPool() {
-		return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-	}
+
 }

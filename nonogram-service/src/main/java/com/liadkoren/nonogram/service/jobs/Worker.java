@@ -27,7 +27,6 @@ public class Worker {
 
 	private final JobQueue jobQueue;
 	private final JobStore jobStore;
-	private final ExecutorService solverPool;     // injected from ExecutorConfig
 
 	@Autowired(required = false)
 	private final Scraper scraper;                // from nonogram-lib
@@ -80,8 +79,6 @@ public class Worker {
 				case ERROR -> jobStore.markFailed(jobEntity.getId(), "ERROR: " + result.reason());
 			}
 
-		} catch (IllegalStateException e) {
-			jobStore.markFailed(jobEntity.getId(), "Impossible Puzzle: " + e.getMessage());
 		} catch (Exception e) {
 			jobStore.markFailed(jobEntity.getId(), "Solver Error: " + e.getMessage());
 		}

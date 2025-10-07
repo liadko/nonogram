@@ -66,7 +66,7 @@
         <dependency>
             <groupId>com.liadkoren.nonogram</groupId>
             <artifactId>nonogram-lib</artifactId>
-            <version>${project.version}</version>
+            <version>0.1.0</version>
         </dependency>
 
         <!-- test -->
@@ -75,6 +75,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <build>

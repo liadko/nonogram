@@ -1,13 +1,10 @@
 package com.liadkoren.nonogram.solver;
 
-import com.liadkoren.nonogram.core.model.Puzzle;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class SimpleSolverRowDeductionTest {
+class LineIteratorRowDeductionTest {
 
 	private static int[][] grid5x5() {
 		return new int[5][5];
