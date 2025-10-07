@@ -3,10 +3,8 @@ package com.liadkoren.nonogram.solver;
 import com.liadkoren.nonogram.core.model.Puzzle;
 
 import java.math.BigInteger;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 // Not thread-safe
 // Iterates over all valid placements of blocks in a row of given length
@@ -91,13 +89,10 @@ public final class LineFillIterator implements Iterator<int[]> {
 		return certain;
 	}
 
-	public record DeductionResult(boolean certain) {}
+	public record DeductionResult(boolean certain, LineFillIterator lineIterator) {}
 
 	/**
-	 * Runs deduction but does not write to the grid.
-	 * Returns a view of the internal intersectionView buffer.
-	 * This array is reused by subsequent calls and is only valid
-	 * until the next call to any deduction method on this iterator.
+	 * Runs deduction and writes to grid.
 	 */
 	public DeductionResult parallelDeduce() {
 		//System.out.println("Parallel deduce called on line " + (isRow ? "row " : "col ") + lineIndex);
@@ -105,7 +100,7 @@ public final class LineFillIterator implements Iterator<int[]> {
 		boolean certain = intersect();
 		updateGridWithIntersection();
 
-		return new DeductionResult(certain);
+		return new DeductionResult(certain, this);
 	}
 
 
@@ -308,10 +303,10 @@ public final class LineFillIterator implements Iterator<int[]> {
 		return res;
 	}
 
-	public static ArrayDeque<LineFillIterator> getLineIterators(Puzzle puzzle, int[][] grid) {
+	public static void populateWithLineIterators(Puzzle puzzle, int[][] grid, Deque<LineFillIterator> deque) {
 		int rows = puzzle.rows().size(), cols = puzzle.cols().size();
 
-		ArrayDeque<LineFillIterator> deque = new ArrayDeque<>(rows + cols);
+
 		// Add row iterators
 		for (int r = 0; r < rows; r++) {
 			int[] blockSizes = puzzle.rows().get(r);
@@ -326,7 +321,6 @@ public final class LineFillIterator implements Iterator<int[]> {
 			deque.addLast(colIt);
 		}
 
-		return deque;
 	}
 
 
