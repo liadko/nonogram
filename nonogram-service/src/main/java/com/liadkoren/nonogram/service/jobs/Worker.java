@@ -3,7 +3,6 @@ package com.liadkoren.nonogram.service.jobs;
 import com.liadkoren.nonogram.core.model.SolveResult;
 import com.liadkoren.nonogram.core.ports.Scraper;
 import com.liadkoren.nonogram.service.jobs.model.JobEntity;
-import jakarta.validation.Payload;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -73,10 +72,14 @@ public class Worker {
 		var solver = new ParallelSolver(solverPool);
 		try {
 			SolveResult result = solver.solve(jobEntity.getPuzzle(), Duration.ofMillis(jobEntity.getBudgetMs()));
-			if (result.solutionGrid().isPresent())
-				jobStore.markCompleted(jobEntity.getId(), result.solutionGrid().get());   // boolean[][]
-			else
-				jobStore.markFailed(jobEntity.getId(), "TIMEOUT_OR_UNSOLVED");
+			// TODO ADD LOGS ADD LOGS ADD LOGS
+			switch (result.status()) {
+				case SUCCESS -> jobStore.markCompleted(jobEntity.getId(), result.grid());
+				case TIMEOUT -> jobStore.markFailed(jobEntity.getId(), "TIMEOUT");
+				case UNSOLVABLE -> jobStore.markFailed(jobEntity.getId(), "UNSOLVABLE: " + result.reason());
+				case ERROR -> jobStore.markFailed(jobEntity.getId(), "ERROR: " + result.reason());
+			}
+
 		} catch (IllegalStateException e) {
 			jobStore.markFailed(jobEntity.getId(), "Impossible Puzzle: " + e.getMessage());
 		} catch (Exception e) {
@@ -97,10 +100,5 @@ public class Worker {
 
 	}
 
-	void solvePuzzle(Puzzle puzzle) {
-
-		solver.solve(puzzle, )
-
-	}
 
 }
