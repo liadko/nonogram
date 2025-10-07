@@ -17,48 +17,61 @@ public final class SimpleSolver implements Solver {
 	private int[][] grid;
 	int rows, cols;
 
-	private ArrayDeque<LineFillIterator> lineIterators;
+	private ArrayDeque<LineFillIterator> linesDeque;
 
-	private void initializeSolver(Puzzle puzzle) {
+	long startTime, deadline;
+
+	public SimpleSolver(Puzzle puzzle, Duration budget) {
 		this.rows = puzzle.rows().size();
 		this.cols = puzzle.cols().size();
 		this.grid = new int[rows][cols];
 
-		lineIterators = new ArrayDeque<>(rows + cols);
-		LineFillIterator.populateWithLineIterators(puzzle, grid, lineIterators);
+		linesDeque = new ArrayDeque<>(rows + cols);
+		LineFillIterator.populateWithLineIterators(puzzle, grid, linesDeque);
+
+		startTime = System.nanoTime();
+		deadline = startTime + budget.toNanos();
 	}
 
+	public SolveResult get() {
+		try {
+			return trySolve();
+		} catch (IllegalStateException e) {
+			return SolveResult.unsolvable("Puzzle is unsolvable: " + e.getMessage(), elapsedSinceStart());
+		} catch (Exception e) {
+			return SolveResult.error("Solver encountered an error: " + e.getMessage(), elapsedSinceStart());
+		}
+	}
 
-	public SolveResult solve(Puzzle puzzle, Duration budget) {
-		long start = System.nanoTime();
-		long deadline = start + budget.toNanos();
+	public SolveResult trySolve() throws IllegalStateException {
 
-		initializeSolver(puzzle);
-
-		while (System.nanoTime() < deadline && !lineIterators.isEmpty()) {
-			LineFillIterator lineIt = lineIterators.removeFirst();
+		while (withinTimeBudget() && !linesDeque.isEmpty()) {
+			LineFillIterator lineIt = linesDeque.removeFirst();
 
 			boolean certain = lineIt.deduce();
 
 			if (!certain) {
-				// re-add to the end of the queue
-				lineIterators.addLast(lineIt);
+				linesDeque.addLast(lineIt);
 			}
 
 		}
 
-		Duration timeSpent = Duration.ofNanos(System.nanoTime() - start);
+		if (linesDeque.isEmpty()) // solved
+			return SolveResult.success(grid, elapsedSinceStart());
 
-		if (lineIterators.isEmpty()) {
-			// solved
-			return SolveResult.success(grid, timeSpent);
+		return SolveResult.timeout(elapsedSinceStart()); // budget exceeded
+	}
+
+	private boolean withinTimeBudget() {
+		return System.nanoTime() < deadline;
+	}
+
+	private Duration elapsedSinceStart() {
+		try {
+			return Duration.ofNanos(System.nanoTime() - startTime);
+		} catch (Exception e) {
+			return Duration.ZERO;
 		}
-		// budget exceeded
-		return SolveResult.timeout(timeSpent);
 	}
 
-
-	public int[][] getGrid() {
-		return grid;
-	}
 }

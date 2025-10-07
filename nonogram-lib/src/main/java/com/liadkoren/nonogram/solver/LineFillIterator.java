@@ -89,7 +89,7 @@ public final class LineFillIterator implements Iterator<int[]> {
 		return certain;
 	}
 
-	public record DeductionResult(boolean certain) {}
+	public record DeductionResult(boolean certain, LineFillIterator lineIterator) {}
 
 	/**
 	 * Runs deduction and writes to grid.
@@ -100,7 +100,7 @@ public final class LineFillIterator implements Iterator<int[]> {
 		boolean certain = intersect();
 		updateGridWithIntersection();
 
-		return new DeductionResult(certain);
+		return new DeductionResult(certain, this);
 	}
 
 

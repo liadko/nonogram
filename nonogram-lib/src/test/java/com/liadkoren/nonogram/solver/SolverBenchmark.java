@@ -11,8 +11,6 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -31,7 +29,6 @@ public class SolverBenchmark {
 	private Puzzle dragonPuzzle;
 	private SimpleSolver simpleSolver;
 	private ParallelSolver parallelSolver;
-	private ExecutorService pool;
 	private Duration budget;
 
 	@Setup(Level.Trial)
@@ -58,35 +55,24 @@ public class SolverBenchmark {
 		dragonPuzzle = new Puzzle(rowClues, colClues);
 		budget = Duration.ofSeconds(10); // Generous budget for the benchmark
 
-		// Initialize solvers
-		simpleSolver = new SimpleSolver();
-		pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		parallelSolver = new ParallelSolver(pool);
 
 		System.out.println("Setup complete. Using " + Runtime.getRuntime().availableProcessors() + " threads for parallel solver.");
 	}
 
-	@TearDown(Level.Trial)
-	public void tearDown() {
-		// This method runs once after all benchmark iterations are complete.
-		pool.shutdownNow();
-	}
-
 
 	// --- Benchmark Methods ---
-
+	@Benchmark
+	public void parallelSolverDragonPuzzle(Blackhole bh) {
+		SolveResult result = new ParallelSolver(dragonPuzzle, budget).get();
+		bh.consume(result);
+	}
 	@Benchmark
 	public void simpleSolverDragonPuzzle(Blackhole bh) {
-		SolveResult result = simpleSolver.solve(dragonPuzzle, budget);
+		SolveResult result = new SimpleSolver(dragonPuzzle, budget).get();
 		// Consume the result to prevent the JVM from optimizing away the call.
 		bh.consume(result);
 	}
 
-	@Benchmark
-	public void parallelSolverDragonPuzzle(Blackhole bh) {
-		SolveResult result = parallelSolver.solve(dragonPuzzle, budget);
-		bh.consume(result);
-	}
 
 	/**
 	 * Main method to run the benchmarks from the IDE.
