@@ -6,9 +6,6 @@ import com.liadkoren.nonogram.core.model.SolveResult;
 import java.time.Duration;
 import java.util.function.Supplier;
 
-public interface Solver extends Supplier<SolveResult> {
-
-	default SolveResult solve() {
-		return get();
-	};
+public interface SolverFactory {
+	Solver create(Puzzle puzzle, Duration budget);
 }

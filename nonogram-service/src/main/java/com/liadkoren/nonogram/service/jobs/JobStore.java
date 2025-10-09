@@ -26,7 +26,7 @@ public class JobStore {
 		return repo.save(jobEntity);
 	}
 
-	public JobEntity markCompleted(UUID id, boolean[][] resultGrid) {
+	public JobEntity markSuccess(UUID id, boolean[][] resultGrid) {
 		JobEntity jobEntity = repo.findById(id)
 				.orElseThrow(() -> new IllegalArgumentException("Job not found: " + id));
 		jobEntity.setStatus(JobStatus.SUCCESS);

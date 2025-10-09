@@ -59,12 +59,12 @@ class JobStoreTest {
 	}
 
 	@Test
-	void markCompleted_sets_status_result_and_completedAt() {
+	void markSuccess_sets_status_result_and_completedAt() {
 		var j = JobEntity.forUrl(URI.create("http://x"), 5_000);
 		store.save(j);
 		store.markRunning(j.getId()); // typical flow
 
-		JobEntity done = store.markCompleted(j.getId(), new boolean[10][10]);
+		JobEntity done = store.markSuccess(j.getId(), new boolean[10][10]);
 
 		assertEquals(JobStatus.SUCCESS, done.getStatus());
 		assertNotNull(done.getCompletedAt());
@@ -94,7 +94,7 @@ class JobStoreTest {
 	}
 
 	@Test
-	void markCompleted_sets_result_grid_and_persists() {
+	void markSuccess_sets_result_grid_and_persists() {
 		var j = JobEntity.forUrl(URI.create("http://x"), 5_000);
 		store.save(j);
 		em.flush(); // ensure INSERT
@@ -105,7 +105,7 @@ class JobStoreTest {
 		};
 
 		// your JobStore should set both summary and grid; if you split APIs, adjust call
-		JobEntity done = store.markCompleted(j.getId(), grid);
+		JobEntity done = store.markSuccess(j.getId(), grid);
 		em.flush(); // force UPDATE
 
 		assertEquals(JobStatus.SUCCESS, done.getStatus());

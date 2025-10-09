@@ -12,8 +12,8 @@ import java.util.concurrent.Executors;
 @EnableAsync
 public class ExecutorConfig {
 
-	@Bean(name = "workerExecutor")
-	public TaskExecutor workerExecutor() {
+	@Bean
+	public ExecutorService jobListenerExecutor() {
 		var ex = new ThreadPoolTaskExecutor();
 		int n = Runtime.getRuntime().availableProcessors();
 		ex.setCorePoolSize(n);
@@ -21,7 +21,7 @@ public class ExecutorConfig {
 		ex.setQueueCapacity(0);          // direct handoff → backpressure
 		ex.setThreadNamePrefix("worker-");
 		ex.initialize();
-		return ex;
+		return ex.getThreadPoolExecutor();
 	}
 
 

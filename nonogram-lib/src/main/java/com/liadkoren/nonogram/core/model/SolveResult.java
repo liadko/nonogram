@@ -3,6 +3,10 @@ package com.liadkoren.nonogram.core.model;
 import java.time.Duration;
 import java.util.Optional;
 
+/**
+ * The result of a solve attempt.
+ * Immutable.
+ */
 public record SolveResult(SolveStatus status,
 						  boolean[][] grid,
 						  Duration duration,

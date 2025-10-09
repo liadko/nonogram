@@ -10,7 +10,7 @@ import jakarta.validation.constraints.PositiveOrZero;
  * @param puzzle The nonogram puzzle to solve
  * @param budgetMs Maximum time budget in milliseconds for solving the puzzle
  */
-public record PuzzleJobRequestDto(
+public record PuzzleJobRequest(
     @Valid Puzzle puzzle,
     @PositiveOrZero long budgetMs
 ) {}

@@ -13,13 +13,14 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "jobs.app")
-public class JobService {
+public class JobSubmissionService {
 	private final JobStore jobStore;
 	private final JobQueue jobQueue;
 
-	@Transactional
+	//@Transactional
 	public UUID submitUrlJob(URI url, long budgetMs) {
 		requireBudget(budgetMs);
+
 		JobEntity jobEntity = JobEntity.forUrl(url, budgetMs);
 		jobStore.save(jobEntity);
 		jobQueue.submit(jobEntity.getId());
@@ -28,9 +29,10 @@ public class JobService {
 		return jobEntity.getId();
 	}
 
-	@Transactional
+	//@Transactional
 	public UUID submitPuzzleJob(Puzzle puzzle, long budgetMs) {
 		requireBudget(budgetMs);
+
 		JobEntity jobEntity = JobEntity.forPuzzle(puzzle, budgetMs);
 		jobStore.save(jobEntity);
 		jobQueue.submit(jobEntity.getId());
