@@ -26,6 +26,10 @@ public final class ParallelSolver implements Solver {
 	private long solveStartTime, solveDeadline;
 
 
+	public static SolveResult solve(Puzzle puzzle, Duration budget) {
+		return new ParallelSolver(puzzle, budget).get();
+	}
+
 	public ParallelSolver(Puzzle puzzle, Duration budget) {
 
 		this.rows = puzzle.rows().size();
