@@ -26,11 +26,12 @@ public class JobStore {
 		return repo.save(jobEntity);
 	}
 
-	public JobEntity markSuccess(UUID id, boolean[][] resultGrid) {
+	public JobEntity markSuccess(UUID id, boolean[][] resultGrid, long timeMs) {
 		JobEntity jobEntity = repo.findById(id)
 				.orElseThrow(() -> new IllegalArgumentException("Job not found: " + id));
 		jobEntity.setStatus(JobStatus.SUCCESS);
 		jobEntity.setCompletedAt(Instant.now());
+		jobEntity.setSolutionTimeMs(timeMs);
 		jobEntity.setResultGrid(resultGrid);
 		return repo.save(jobEntity);
 	}

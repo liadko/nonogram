@@ -25,7 +25,7 @@ public class JobListenerTest {
 	private JobQueue jobQueue;
 
 	@Mock
-	private JobProcessingService jobProcessingService;
+	private JobExecutor jobExecutor;
 
 	@InjectMocks
 	private JobListener jobListener;
@@ -40,7 +40,7 @@ public class JobListenerTest {
 		doAnswer(invocation -> {
 			processJobWasCalled.set(true);
 			return null;
-		}).when(jobProcessingService).processJob(jobId);
+		}).when(jobExecutor).processJob(jobId);
 
 
 		CompletableFuture<Void> future = CompletableFuture.runAsync(() -> jobListener.runLoop());
@@ -54,7 +54,7 @@ public class JobListenerTest {
 
 		future.cancel(true);
 
-		verify(jobProcessingService, atLeastOnce()).processJob(jobId);
+		verify(jobExecutor, atLeastOnce()).processJob(jobId);
 	}
 
 	@Test
@@ -69,11 +69,11 @@ public class JobListenerTest {
 			new CountDownLatch(1).await();
 			return null;
 		});
-		doThrow(new RuntimeException("Simulated processing error")).when(jobProcessingService).processJob(job1);
+		doThrow(new RuntimeException("Simulated processing error")).when(jobExecutor).processJob(job1);
 		doAnswer(invocation -> {
 			job2Processed.set(true);
 			return null;
-		}).when(jobProcessingService).processJob(job2);
+		}).when(jobExecutor).processJob(job2);
 
 
 		CompletableFuture<Void> future = CompletableFuture.runAsync(() -> jobListener.runLoop());
@@ -84,7 +84,7 @@ public class JobListenerTest {
 
 		future.cancel(true);
 
-		verify(jobProcessingService).processJob(job1);
+		verify(jobExecutor).processJob(job1);
 
 
 	}
@@ -101,6 +101,6 @@ public class JobListenerTest {
 			fail("The runLoop did not terminate within the timeout when InterruptedException was thrown.");
 		}
 
-		verify(jobProcessingService, never()).processJob(any(UUID.class));
+		verify(jobExecutor, never()).processJob(any(UUID.class));
 	}
 }

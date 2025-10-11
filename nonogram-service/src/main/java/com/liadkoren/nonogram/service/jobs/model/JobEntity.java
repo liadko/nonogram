@@ -53,7 +53,8 @@ public class JobEntity {
 	@Column(nullable = false)
 	private long budgetMs;
 
-	private String errorType;
+	private Long solutionTimeMs;
+
 	@Column(length = 2000)
 	private String errorMessage;
 
@@ -71,7 +72,7 @@ public class JobEntity {
 		if (puzzle == null) throw new IllegalArgumentException("puzzle is required");
 		requireBudget(budgetMs);
 		JobEntity j = baseNew(budgetMs);
-		j.sourceType = JobSourceType.PUZZLE;
+		j.sourceType = JobSourceType.INLINE_PUZZLE;
 		j.puzzle = puzzle;
 		return j;
 	}
@@ -107,7 +108,7 @@ public class JobEntity {
 		return copy;
 	}
 
-	public enum JobSourceType {URL, PUZZLE}
+	public enum JobSourceType {URL, INLINE_PUZZLE}
 
 	public enum JobStatus {QUEUED, RUNNING, SUCCESS, FAIL}
 }

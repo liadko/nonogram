@@ -5,15 +5,15 @@ import com.liadkoren.nonogram.service.jobs.model.JobEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "jobs.app")
-public class JobSubmissionService {
+public class JobService {
 	private final JobStore jobStore;
 	private final JobQueue jobQueue;
 
@@ -39,6 +39,10 @@ public class JobSubmissionService {
 		log.info("job.queued type=puzzle jobId={} rows={} cols={} budgetMs={}",
 				jobEntity.getId(), puzzle.rows().size(), puzzle.cols().size(), budgetMs);
 		return jobEntity.getId();
+	}
+
+	public Optional<JobEntity> findJob(UUID jobId) {
+		return jobStore.find(jobId);
 	}
 
 	private static void requireBudget(long ms) {

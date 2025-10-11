@@ -5,11 +5,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
-import org.springframework.scheduling.annotation.Async;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -21,14 +17,14 @@ public class JobListener {
 
 	private final ExecutorService jobListenerExecutor;
 	private final JobQueue jobQueue;
-	private final JobProcessingService jobProcessingService;
+	private final JobExecutor jobExecutor;
 
 	private Future<?> workerFuture;
 
-	public JobListener(@Qualifier("jobListenerExecutor") ExecutorService jobListenerExecutor, JobQueue jobQueue, JobProcessingService jobProcessingService) {
+	public JobListener(@Qualifier("jobListenerExecutor") ExecutorService jobListenerExecutor, JobQueue jobQueue, JobExecutor jobExecutor) {
 		this.jobListenerExecutor = jobListenerExecutor;
 		this.jobQueue = jobQueue;
-		this.jobProcessingService = jobProcessingService;
+		this.jobExecutor = jobExecutor;
 	}
 
 	@PostConstruct
@@ -59,7 +55,7 @@ public class JobListener {
 			}
 
 			try {
-				jobProcessingService.processJob(jobId);
+				jobExecutor.processJob(jobId);
 			} catch (Throwable t) {
 				log.error("Fatal error processing job {}; continuing loop", jobId, t);
 			}

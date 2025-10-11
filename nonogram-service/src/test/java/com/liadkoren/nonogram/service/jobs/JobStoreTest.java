@@ -64,12 +64,11 @@ class JobStoreTest {
 		store.save(j);
 		store.markRunning(j.getId()); // typical flow
 
-		JobEntity done = store.markSuccess(j.getId(), new boolean[10][10]);
+		JobEntity done = store.markSuccess(j.getId(), new boolean[10][10], 123L);
 
 		assertEquals(JobStatus.SUCCESS, done.getStatus());
 		assertNotNull(done.getCompletedAt());
 		assertNull(done.getErrorMessage());
-		assertNull(done.getErrorType());
 	}
 
 	@Test
@@ -105,7 +104,7 @@ class JobStoreTest {
 		};
 
 		// your JobStore should set both summary and grid; if you split APIs, adjust call
-		JobEntity done = store.markSuccess(j.getId(), grid);
+		JobEntity done = store.markSuccess(j.getId(), grid, 123L);
 		em.flush(); // force UPDATE
 
 		assertEquals(JobStatus.SUCCESS, done.getStatus());

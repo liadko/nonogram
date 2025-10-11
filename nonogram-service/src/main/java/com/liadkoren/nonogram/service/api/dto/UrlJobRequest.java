@@ -1,6 +1,7 @@
 package com.liadkoren.nonogram.service.api.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 
 /**
  * Request DTO for creating a nonogram solving job from a URL.
@@ -10,5 +11,5 @@ import jakarta.validation.constraints.NotBlank;
  */
 public record UrlJobRequest(
     @NotBlank String url,
-    long budgetMs
+	@PositiveOrZero long budgetMs
 ) {}
