@@ -12,15 +12,19 @@ public record JobStatusResponse(
 		UUID id,
 		JobStatus status,
 		Long solutionTimeMs,
+		Integer rows, Integer cols,
 		boolean[][] resultGrid,
 		String errorMessage
 ) {
 	public static JobStatusResponse fromEntity(JobEntity entity) {
+		boolean[][] grid = entity.getResultGrid();
 		return new JobStatusResponse(
 				entity.getId(),
 				entity.getStatus(),
 				entity.getSolutionTimeMs(),
-				entity.getResultGrid(),
+				grid != null ? grid.length : null,
+				grid != null && grid.length > 0 ? grid[0].length : null,
+				grid,
 				entity.getErrorMessage()
 		);
 	}

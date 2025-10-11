@@ -13,8 +13,7 @@ import java.util.stream.Stream;
 public class NonogramCluesExtractor {
 	List<int[]> extractAllRows(Element table, Function<Element, String> cellParser) {
 		if (table == null) {
-			System.out.println("No table element provided for row clues extraction.");
-			return new ArrayList<>();
+			throw new IllegalArgumentException("No table element found for row clues extraction.");
 		}
 
 		return table.select("tr").stream()
@@ -34,8 +33,7 @@ public class NonogramCluesExtractor {
 
 	List<int[]> extractAllCols(Element table, Function<Element, String> cellParser) {
 		if (table == null) {
-			System.out.println("No table element provided for row clues extraction.");
-			return new ArrayList<>();
+			throw new IllegalArgumentException("No table element found for column clues extraction.");
 		}
 
 		Element firstRow = table.select("tr").first();
