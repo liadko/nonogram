@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Status</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: 2em auto;
+            padding: 1em;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .status-box {
+            padding: 1.5em;
+            border-radius: 8px;
+            margin-top: 1em;
+        }
+
+        .status-queued {
+            background-color: #e3f2fd;
+            border: 1px solid #90caf9;
+        }
+
+        .status-success {
+            background-color: #e8f5e9;
+            border: 1px solid #a5d6a7;
+        }
+
+        .status-fail {
+            background-color: #ffebee;
+            border: 1px solid #ef9a9a;
+        }
+
+        .job-id {
+            font-family: monospace;
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1.5em;
+        }
+    </style>
+</head>
+<body>
+<h1>Job Submitted Successfully!</h1>
+
+<!-- We use the "job" object we passed into the model from the controller -->
+<p>Your job ID is: <strong class="job-id" th:text="${job.id}">[job-id-goes-here]</strong></p>
+
+<!--
+    th:switch is like a Java switch statement. It's useful for checking a value against multiple cases.
+    We check the value of job.status.
+-->
+<div th:switch="${job.status}" class="status-box">
+    <div th:case="'QUEUED'" class="status-queued">
+        <h2>Status: Queued</h2>
+        <p>Your job is in the queue and will be processed shortly.</p>
+    </div>
+    <div th:case="'SUCCESS'" class="status-success">
+        <h2>Status: Success!</h2>
+        <p>The nonogram has been solved.</p>
+    </div>
+    <div th:case="'FAIL'" class="status-fail">
+        <h2>Status: Failed</h2>
+        <p>There was an error processing your job.</p>
+    </div>
+    <!-- A default case for any other status (like RUNNING) -->
+    <div th:case="*">
+        <h2>Status: In Progress...</h2>
+        <p>Your job is currently being processed.</p>
+    </div>
+</div>
+
+<a th:href="@{/}">Submit Another Job</a>
+</body>
+</html>

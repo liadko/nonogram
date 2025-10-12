@@ -18,7 +18,7 @@
 
     <modules>
         <module>nonogram-lib</module>
-        <module>nonogram-service</module>
+        <module>nonogram-app</module>
     </modules>
 
     <properties>
