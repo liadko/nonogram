@@ -36,7 +36,6 @@ public class JobExecutor {
 	 *
 	 * @param jobId the ID of the job to process
 	 */
-	@Transactional
 	public void processJob(UUID jobId) {
 		JobEntity jobEntity = jobStore.find(jobId)
 				.orElseThrow(() -> new IllegalArgumentException("Job not found: " + jobId));

@@ -14,8 +14,24 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
+
+  thymeleaf:
+    cache: false
+  web:
+    resources:
+      cache:
+        period: 0
+  devtools:
+    # Option A: disable restart (fastest if WSL IO is slow)
+    restart:
+      enabled: false
+
 
 
 server:
   port: 8081
+
+logging:
+  level:
+    web.view.controller: DEBUG

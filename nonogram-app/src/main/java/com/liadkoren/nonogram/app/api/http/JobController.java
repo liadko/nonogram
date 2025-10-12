@@ -16,9 +16,9 @@ import java.net.URI;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/jobs")
+@RequestMapping("/api/jobs")
 @RequiredArgsConstructor
-@Slf4j(topic = "jobs.api")
+@Slf4j(topic = "jobs.api.controller")
 @Validated
 class JobController {
 	private final JobService jobService;
@@ -42,7 +42,7 @@ class JobController {
 
 	@GetMapping("/{jobId}")
 	public ResponseEntity<JobStatusResponse> getJobStatus(@PathVariable UUID jobId) {
-		log.info("status request received jobId={}", jobId);
+		log.debug("status request received jobId={}", jobId);
 		return jobService.findJob(jobId)
 				.map(JobStatusResponse::fromEntity)
 				.map(ResponseEntity::ok)

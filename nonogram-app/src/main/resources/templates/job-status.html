@@ -1,85 +1,48 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Job Status</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            max-width: 600px;
-            margin: 2em auto;
-            padding: 1em;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .status-box {
-            padding: 1.5em;
-            border-radius: 8px;
-            margin-top: 1em;
-        }
-
-        .status-queued {
-            background-color: #e3f2fd;
-            border: 1px solid #90caf9;
-        }
-
-        .status-success {
-            background-color: #e8f5e9;
-            border: 1px solid #a5d6a7;
-        }
-
-        .status-fail {
-            background-color: #ffebee;
-            border: 1px solid #ef9a9a;
-        }
-
-        .job-id {
-            font-family: monospace;
-            background-color: #f5f5f5;
-            padding: 0.2em 0.4em;
-            border-radius: 4px;
-        }
-
-        a {
-            color: #007bff;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 1.5em;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css" />
+    <meta name="job-id" th:content="${jobId}" content="" />
 </head>
 <body>
-<h1>Job Submitted Successfully!</h1>
+<main class="card">
+    <header class="header">
+        <h1>Job Status</h1>
+        <div class="meta">
+            <span>Job ID:</span>
+            <strong class="job-id" id="jobId" th:text="${jobId}">[job-id]</strong>
+        </div>
+    </header>
 
-<!-- We use the "job" object we passed into the model from the controller -->
-<p>Your job ID is: <strong class="job-id" th:text="${job.id}">[job-id-goes-here]</strong></p>
+    <section id="statusBox" class="status-box">
+        <h2 id="statusTitle">Loading…</h2>
+        <p id="statusMsg">Fetching current status…</p>
+        <div>
+            <div><span>Time:</span> <strong id="timeMs">—</strong>ms</div>
+            <div><span>Size:</span> <strong id="size">—</strong></div>
+        </div>
 
-<!--
-    th:switch is like a Java switch statement. It's useful for checking a value against multiple cases.
-    We check the value of job.status.
--->
-<div th:switch="${job.status}" class="status-box">
-    <div th:case="'QUEUED'" class="status-queued">
-        <h2>Status: Queued</h2>
-        <p>Your job is in the queue and will be processed shortly.</p>
-    </div>
-    <div th:case="'SUCCESS'" class="status-success">
-        <h2>Status: Success!</h2>
-        <p>The nonogram has been solved.</p>
-    </div>
-    <div th:case="'FAIL'" class="status-fail">
-        <h2>Status: Failed</h2>
-        <p>There was an error processing your job.</p>
-    </div>
-    <!-- A default case for any other status (like RUNNING) -->
-    <div th:case="*">
-        <h2>Status: In Progress...</h2>
-        <p>Your job is currently being processed.</p>
-    </div>
-</div>
+        <div id="error" class="error hidden">
+            <p><strong>Error:</strong> <span id="errMsg"></span></p>
+        </div>
+    </section>
 
-<a th:href="@{/}">Submit Another Job</a>
+    <section id="gridSection" class="grid-section hidden">
+        <h3>Solution</h3>
+        <div id="nonogram" class="nonogram" aria-label="Nonogram result grid"></div>
+    </section>
+
+    <section class="actions">
+        <a th:href="@{/}" href="/">Submit another job</a>
+        <button id="refreshBtn" type="button" class="btn-secondary">Refresh now</button>
+        <span id="pollBadge" class="badge">auto-updating…</span>
+    </section>
+
+    <noscript><p class="warn">Enable JavaScript to see live updates.</p></noscript>
+</main>
+
+<script defer th:src="@{/js/job-status.js}" src="/js/job-status.js"></script>
 </body>
 </html>
