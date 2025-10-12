@@ -1,0 +1,113 @@
+/* Layout */
+body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, 'Helvetica Neue', Arial, sans-serif;
+    background: #f7f7f8;
+    margin: 0;
+    padding: 2rem;
+}
+
+.card {
+    max-width: 720px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #e6e6eb;
+    border-radius: 12px;
+    padding: 1.5rem 1.75rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+h1 { margin: 0 0 0.75rem 0; font-size: 1.5rem; }
+h2 { margin: 0 0 0.5rem 0; font-size: 1.25rem; }
+
+.job-id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    background: #f2f2f5;
+    padding: 0.15rem 0.35rem;
+    border-radius: 6px;
+}
+
+/* Status box */
+.status-box {
+    margin-top: 1rem;
+    border: 1px solid #e6e6eb;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.result, .error { margin-top: 0.75rem; }
+.hidden { display: none; }
+
+/* Actions */
+.actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+a { color: #0a58ca; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.btn-secondary {
+    border: 1px solid #d0d0d7;
+    background: #fafafe;
+    padding: 0.45rem 0.8rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.btn-secondary:hover { background: #f1f1f9; }
+
+.badge {
+    font-size: 0.85rem;
+    color: #666;
+    background: #f2f2f5;
+    border: 1px solid #e0e0e6;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+}
+
+.warn {
+    margin-top: 1rem;
+    color: #7a2e00;
+    background: #fff2e0;
+    border: 1px solid #ffd699;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+}
+
+
+
+.kv { display: grid; grid-template-columns: auto 1fr; gap: .25rem .75rem; margin-top: .5rem; }
+.kv > div { display: contents; }
+.kv span { color: #555; }
+
+/* grid section */
+/* ---- Nonogram grid: fit width, square cells ---- */
+.grid-section { margin-top: 1rem; }
+
+.nonogram {
+    --cols: 0;                 /* set from JS */
+    --cell: 12px;              /* JS will override */
+    display: grid;
+    grid-template-columns: repeat(var(--cols), var(--cell));
+    grid-auto-rows: var(--cell);
+    gap: 2px;
+    background: #d7d7dd;
+    padding: 2px;
+    border-radius: 8px;
+
+    width: 100%;
+    overflow: hidden;          /* no scrollbars */
+}
+
+.cell { width: var(--cell); height: var(--cell); background: #fff; }
+.cell.filled { background: #111; }
+.cell.unknown { background: #bbb; }             /* if ever needed */
+.hidden { display: none; }
+
+/* status colors */
+.status-box { margin-top: 1rem; border: 1px solid #e6e6eb; border-radius: 10px; padding: 1rem; }
+.status-queued  { background: #eaf3ff; border-color: #b7d3ff; }
+.status-running { background: #fff6e5; border-color: #ffd58a; }
+.status-success { background: #eaf9ef; border-color: #b7eec6; }
+.status-fail    { background: #ffe9ea; border-color: #ffb3b8; }

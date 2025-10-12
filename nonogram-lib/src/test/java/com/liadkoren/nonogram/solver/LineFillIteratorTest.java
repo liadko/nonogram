@@ -119,4 +119,14 @@ class LineFillIteratorTest {
 
 		assertEquals(715, count); // C(13,4)
 	}
+
+
+	@Test
+	void manualPermutationCount() {
+		int[][] grid = new int[1][50]; // all unknown
+		LineFillIterator it = new LineFillIterator(new int[]{1, 5, 5, 2}, grid, true, 0);
+
+		System.out.println("Permutations:" + LineFillIterator.countPlacements(52, new int[]{2, 4, 5, 1, 4}));
+		System.out.println("Permutations:" + LineFillIterator.countPlacements(52, new int[]{2, 3, 4, 2}));
+	}
 }

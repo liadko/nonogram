@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Job Status</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css" />
+    <meta name="job-id" th:content="${jobId}" content="" />
+</head>
+<body>
+<main class="card">
+    <header class="header">
+        <h1>Job Status</h1>
+        <div class="meta">
+            <span>Job ID:</span>
+            <strong class="job-id" id="jobId" th:text="${jobId}">[job-id]</strong>
+        </div>
+    </header>
+
+    <section id="statusBox" class="status-box">
+        <h2 id="statusTitle">Loading…</h2>
+        <p id="statusMsg">Fetching current status…</p>
+        <div>
+            <div><span>Time:</span> <strong id="timeMs">—</strong>ms</div>
+            <div><span>Size:</span> <strong id="size">—</strong></div>
+        </div>
+
+        <div id="error" class="error hidden">
+            <p><strong>Error:</strong> <span id="errMsg"></span></p>
+        </div>
+    </section>
+
+    <section id="gridSection" class="grid-section hidden">
+        <h3>Solution</h3>
+        <div id="nonogram" class="nonogram" aria-label="Nonogram result grid"></div>
+    </section>
+
+    <section class="actions">
+        <a th:href="@{/}" href="/">Submit another job</a>
+        <button id="refreshBtn" type="button" class="btn-secondary">Refresh now</button>
+        <span id="pollBadge" class="badge">auto-updating…</span>
+    </section>
+
+    <noscript><p class="warn">Enable JavaScript to see live updates.</p></noscript>
+</main>
+
+<script defer th:src="@{/js/job-status.js}" src="/js/job-status.js"></script>
+</body>
+</html>
