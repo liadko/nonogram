@@ -3,6 +3,7 @@ package com.liadkoren.nonogram.app.jobs.persistence;
 import com.liadkoren.nonogram.app.jobs.model.JobEntity;
 import com.liadkoren.nonogram.app.jobs.model.JobEntity.JobStatus;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class JobStore {
 		return repo.findById(id);
 	}
 
+	@Transactional
 	public JobEntity markRunning(UUID id) {
 		JobEntity jobEntity = repo.findById(id)
 				.orElseThrow(() -> new IllegalArgumentException("Job not found: " + id));
@@ -32,9 +34,10 @@ public class JobStore {
 		jobEntity.setStatus(JobStatus.RUNNING);
 		jobEntity.setStartedAt(Instant.now());
 		log.info("markRunning saving id={} status={} startedAt={}", id, jobEntity.getStatus(), jobEntity.getStartedAt());
-		return repo.save(jobEntity);
+		return jobEntity;
 	}
 
+	@Transactional
 	public JobEntity markSuccess(UUID id, boolean[][] resultGrid, long timeMs) {
 		if (resultGrid == null)
 			throw new IllegalArgumentException("Result grid cannot be null for success");
@@ -51,9 +54,10 @@ public class JobStore {
 				jobEntity.getResultGrid().length,
 				jobEntity.getResultGrid().length > 0 ? jobEntity.getResultGrid()[0].length : 0);
 
-		return repo.save(jobEntity);
+		return jobEntity;
 	}
 
+	@Transactional
 	public JobEntity markFailed(UUID id, String errorMessage) {
 		JobEntity jobEntity = repo.findById(id)
 				.orElseThrow(() -> new IllegalArgumentException("Job not found: " + id));
@@ -63,7 +67,7 @@ public class JobStore {
 		jobEntity.setCompletedAt(Instant.now());
 		jobEntity.setErrorMessage(errorMessage);
 		log.info("markFailed saving id={} status={} completedAt={}", id, jobEntity.getStatus(), jobEntity.getCompletedAt());
-		return repo.save(jobEntity);
+		return jobEntity;
 	}
 
 	public static String truncateString(String originalString, int maxLength) {

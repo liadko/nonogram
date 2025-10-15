@@ -1,5 +1,6 @@
 package com.liadkoren.nonogram.app.jobs.persistence;
 
+import com.liadkoren.nonogram.app.jobs.queue.JobQueue;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 

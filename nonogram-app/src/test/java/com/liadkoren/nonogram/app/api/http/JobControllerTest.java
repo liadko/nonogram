@@ -61,7 +61,7 @@ class JobControllerTest {
 		when(jobService.findJob(jobId)).thenReturn(Optional.of(mockJob));
 
 		// --- Act & Assert ---
-		mockMvc.perform(get("/jobs/{jobId}", jobId))
+		mockMvc.perform(get("/api/jobs/{jobId}", jobId))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.id").value(jobId.toString()))
@@ -85,7 +85,7 @@ class JobControllerTest {
 		when(jobService.findJob(nonExistentJobId)).thenReturn(Optional.empty());
 
 		// --- Act & Assert ---
-		mockMvc.perform(get("/jobs/{jobId}", nonExistentJobId))
+		mockMvc.perform(get("/api/jobs/{jobId}", nonExistentJobId))
 				.andExpect(status().isNotFound())
 				.andExpect(content().string("")); // Body should be empty for a 404
 	}
@@ -108,7 +108,7 @@ class JobControllerTest {
 		when(jobService.submitUrlJob(any(URI.class), eq(budgetMs))).thenReturn(newJobId);
 
 		// --- Act & Assert ---
-		mockMvc.perform(post("/jobs/url")
+		mockMvc.perform(post("/api/jobs/url")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(requestJson))
 				.andExpect(status().isAccepted())
@@ -128,7 +128,7 @@ class JobControllerTest {
 
 		// --- Act & Assert ---
 		// We expect a 400 Bad Request due to the @PositiveOrZero validation on the DTO.
-		mockMvc.perform(post("/jobs/url")
+		mockMvc.perform(post("/api/jobs/url")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(requestJson))
 				.andExpect(status().isBadRequest());
@@ -154,7 +154,7 @@ class JobControllerTest {
 		when(jobService.submitPuzzleJob(any(), eq(budgetMs))).thenReturn(newJobId);
 
 		// --- Act & Assert ---
-		mockMvc.perform(post("/jobs/puzzle")
+		mockMvc.perform(post("/api/jobs/puzzle")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(requestJson))
 				.andExpect(status().isAccepted())
@@ -177,7 +177,7 @@ class JobControllerTest {
 
 		// --- Act & Assert ---
 		// We expect a 400 Bad Request due to the @PositiveOrZero validation on the DTO.
-		mockMvc.perform(post("/jobs/puzzle")
+		mockMvc.perform(post("/api/jobs/puzzle")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(requestJson))
 				.andExpect(status().isBadRequest());

@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "feature.distributed-jobs",
+      "type": "java.lang.Boolean",
+      "description": "Description for feature.distributed-jobs."
+  }
+] }

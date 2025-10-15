@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:16
+    container_name: nonogram-postgres
+    environment:
+      POSTGRES_DB: nonogram_db
+      POSTGRES_USER: liadkoren
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432" # Maps the container port to your local machine port
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persists the data even if the container stops
+
+volumes:
+  postgres_data:

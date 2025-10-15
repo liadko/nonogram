@@ -2,36 +2,29 @@ spring:
   application:
     name: nonogram
 
-  h2:
-    console:
-      enabled: true
-
+  # --- Datasource Configuration for PostgreSQL ---
   datasource:
-    url: "jdbc:h2:mem:nonogram;DB_CLOSE_DELAY=-1"
-    driverClassName: org.h2.Driver
-    username: sa
-    password:
+    url: "jdbc:postgresql://localhost:5432/nonogram_db"
+    username: liadkoren
+    password: password123
+  # --- JPA & Hibernate Configuration ---
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false
 
+  # --- Development-time Settings ---
   thymeleaf:
-    cache: false
+    cache: false # Disable Thymeleaf caching during development for hot reload.
   web:
     resources:
       cache:
-        period: 0
+        period: 0 # Disable static resource caching (css/js).
   devtools:
-    # Option A: disable restart (fastest if WSL IO is slow)
     restart:
-      enabled: false
-
-
+      enabled: true
 
 server:
   port: 8081
 
-logging:
-  level:
-    web.view.controller: DEBUG
+feature:
+  distributed-jobs: false

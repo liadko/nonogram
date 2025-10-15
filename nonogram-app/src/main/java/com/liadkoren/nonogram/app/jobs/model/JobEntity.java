@@ -36,11 +36,11 @@ public class JobEntity {
 	private String sourceUrl;
 
 	@Type(JsonType.class)                 // serialize/deserialize via Jackson
-	@Column(name = "puzzle", columnDefinition = "clob") // H2: CLOB under the hood
+	@Column(name = "puzzle", columnDefinition = "jsonb")
 	private Puzzle puzzle;
 
 	@Type(JsonType.class)
-	@Column(name = "result_grid", columnDefinition = "clob")
+	@Column(name = "result_grid", columnDefinition = "jsonb")
 	private boolean[][] resultGrid;
 
 	@CreationTimestamp

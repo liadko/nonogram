@@ -1,6 +1,6 @@
 package com.liadkoren.nonogram.app.jobs;
 
-import com.liadkoren.nonogram.app.jobs.persistence.JobQueue;
+import com.liadkoren.nonogram.app.jobs.queue.JobQueue;
 import com.liadkoren.nonogram.app.jobs.worker.JobExecutor;
 import com.liadkoren.nonogram.app.jobs.worker.JobListener;
 import org.junit.jupiter.api.Test;

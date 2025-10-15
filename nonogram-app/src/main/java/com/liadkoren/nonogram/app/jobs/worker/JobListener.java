@@ -1,7 +1,7 @@
 package com.liadkoren.nonogram.app.jobs.worker;
 
 
-import com.liadkoren.nonogram.app.jobs.persistence.JobQueue;
+import com.liadkoren.nonogram.app.jobs.queue.JobQueue;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;

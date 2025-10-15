@@ -1,4 +1,4 @@
-package com.liadkoren.nonogram.app.jobs.persistence;
+package com.liadkoren.nonogram.app.jobs.queue;
 
 import org.springframework.stereotype.Component;
 

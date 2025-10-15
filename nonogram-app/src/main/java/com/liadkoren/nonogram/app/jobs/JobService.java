@@ -1,6 +1,6 @@
 package com.liadkoren.nonogram.app.jobs;
 
-import com.liadkoren.nonogram.app.jobs.persistence.JobQueue;
+import com.liadkoren.nonogram.app.jobs.queue.JobQueue;
 import com.liadkoren.nonogram.app.jobs.persistence.JobStore;
 import com.liadkoren.nonogram.core.model.Puzzle;
 import com.liadkoren.nonogram.app.jobs.model.JobEntity;
